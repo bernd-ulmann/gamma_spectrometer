@@ -379,7 +379,10 @@ controls the y-axis scale. Each peak displayed on the display is scaled in
 height by dividing the absolute number of counts by two to the power of the 
 value set in with BCD swtich. In this case, the actual number of counts in 
 every energy level are divided by 2 ** 3 = 8 (which is done with a simple 
-and fast bitwise right shift in the display routine).
+and fast bitwise right shift in the display routine). Everytime the BCD
+switch setting is changed, the display is updated accordingly which allows
+to "play" with different y-axis scale factors during a measurement without
+losing the counts so far.
 
 Since the software uses the built-in analog digital converter of the MEGA
 2650, it can (basically) differentiate between 1024 energy levels. Since the
