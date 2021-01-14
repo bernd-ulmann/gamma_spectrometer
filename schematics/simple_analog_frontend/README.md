@@ -8,7 +8,7 @@ The circuit was developed over Christmas time 2020/2021, so I had to use what
 was at hand, so there are certainly better ways to do it but it works pretty
 good.
 
-![FrontEndImg](simple_analog_frontend.jpg)
+![FrontEndImg](analog_frontend.pdf)
 
 Functionality
 -------------
