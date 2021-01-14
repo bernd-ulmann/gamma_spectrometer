@@ -1,7 +1,7 @@
 A simple analog front end for a gamma spectrometer
 ==================================================
 
-![PCBImg](schematics/simple_analog_frontend/frontend.jpg)
+![PCBImg](frontend.jpg)
 
 Described here is my rather simple analog front end for a gamma spectrometer.
 The circuit was developed over Christmas time 2020/2021, so I had to use what
