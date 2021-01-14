@@ -3,7 +3,7 @@ Tiny Gamma Spectrometer
 This directory contains my notes and sources for building a simple gamma
 spectrometer. This was mainly developed over Christmas time 2020/2021, and I 
 had to use what was at hand, so there are certainly better ways to do things
-which I am fully aware of. :-)
+- something which I am fully aware of. :-)
 
 Overview
 --------
@@ -114,3 +114,27 @@ looks like this:
 
 ![AdruinoBoard](arduino_board.jpg)
 
+The display front panel not only holds the TFT display (which I just glued 
+in as I did not have suitable screws at hand ;-) ) but also a three position
+rotary switch and a BCD encoded switch. The rotary switch controls the mode
+of operation: RUN, HALT, RESET. In RUN state data is gathered and the display
+is constantly updated accordingly. HALT halts the data gathering process while
+RESET resets all data collected so far.
+
+Both switches have their "wiper" grounded and the outputs are pulled up by 
+10k resistors. (I know that the Arduino has software selectable pull-up 
+resistors on chip but it is hard to get rid of old habits...) The display
+is a cheap 1.8 inch TFT display. The display is connected to the Arduino MEGA 
+2650 as follows:
+|Display pin|MEGA 2650|Comment|
+|-----------|---------|-------|
+|GND        |GND      |Ground |
+|BL         |+5 V     |This controls the backlight|
+|RESET      |D5       |Reset the display|
+|D/C-LD     |D4       |Data/Command control line|
+|CS-SD      |N/A      |Chip select for the SD card slot, not required|
+|CS-LD      |D3       |Chip select for the display itself|
+|MOSI       |MOSI     |Pin 51|
+|SCK        |SCK      |Pin 52|
+|MISO       |MISO     |Pin 50|
++5 V        |+5 V     ||
