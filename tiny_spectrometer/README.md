@@ -15,9 +15,31 @@ a simple gamma spectrometer, the first attempt of which can be seen here:
 
 ![OverallImg](overall.jpg)
 
+This project does not (!) include a high voltage power supply as I had a 
+Knott high voltage supply in my lab which simplified things considerably.
+
+The small chassis shown above contains (from left to right) a dual power
+supply yielding +/-12 V, my analog front end card, a narrow card containing
+an Arduino MEGA 2650 and a little TFT display showing the spectrum in real
+time during measurement.
 
 A simple analog front end for a gamma spectrometer
 ==================================================
+
+This section describes the analog front end card shown above. On its front
+panel are several BNC jacks, two precision potentiometers with precision
+dials, a polarity selector switch, and two LEDs. The green LED is just a 
+power-on LED, while the read LED lights whenever a pulse from the 
+photomultiplier assembly has been detected. The BNC input on the upper 
+right is connected to the photomultiplier. The upper precision potentiometer
+controls the gain of the peak hold stage while the lower sets the 
+threshold for the comparator detecting pulses. The toggle switch selects
+the polarity of the input signal. The three BNC connectors below it yield
+the following signals: Raw signal (inverter or non-inverted, depending on
+the setting of the toggle switch), the amplified output of the peak hold
+stage and a TTL trigger signal.
+
+The circuit board looks like this:
 
 ![PCBImg](frontend.jpg)
 
