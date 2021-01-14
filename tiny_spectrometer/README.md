@@ -43,7 +43,7 @@ The circuit board looks like this:
 
 ![PCBImg](frontend.jpg)
 
-Described here is my rather simple analog front end for a gamma spectrometer.
+...and here is the schematic:
 
 ![FrontEndImg](analog_frontend.jpg)
 
@@ -102,3 +102,15 @@ comparator has triggered the monoflop chain. If two impulses follow each other
 in rapid succession, with the second pulse being higher than the first one, 
 the peak hold stage will charge its capacitor to the new peak even a trigger
 signal has already been generated. 
+
+Digital back end
+================
+The peak output of the analog front and the trigger signal are fed to 
+another standard perf board which contains an Arduino MEGA 2650 which was
+chosen due to two reasons: First, I had one at hand :-) and second, it has
+enough RAM to hold the raw spectrum data as well as compressed data to 
+control the tiny TFT display. This board with the attached TFT display 
+looks like this:
+
+![AdruinoBoard](arduino_board.jpg)
+
