@@ -82,3 +82,15 @@ close($handle);
 system(qq(gnuplot -e "plot '$destination' w l" -));
 ```
 
+The program uses two additional libraries, namely 
+[Audio::Wav](https://metacpan.org/pod/Audio::Wav) and 
+[Getopt::Std](https://metacpan.org/pod/Getopt::Std). If expects an optional
+parameter -n which has to be used if negative peaks instead of positive ones
+are to be processed. This parameter is followed by the name of the WAV-file 
+to be processed.
+
+The program performs a (simple) peak detection, writes a file containing the 
+energy spectrum and calls gnuplot (which should also be installed on the 
+computer) to actually generate plots like this one (an Am241 sample).:
+[ExampleSpectrum](am241.jpg}
+
