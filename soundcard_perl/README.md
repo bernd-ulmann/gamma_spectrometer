@@ -91,6 +91,8 @@ to be processed.
 
 The program performs a (simple) peak detection, writes a file containing the 
 energy spectrum and calls gnuplot (which should also be installed on the 
-computer) to actually generate plots like this one (an Am241 sample).:
+computer) to actually generate plots like this one (an Am241 sample - I know
+it looks pretty horrible, but it was taken with a rather unsuitable Ne102
+plastic scintillator):
 ![ExampleSpectrumImg](am241.jpg)
 
