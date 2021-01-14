@@ -125,7 +125,6 @@ void triggered() {
   value >>= 3;            // Basically we divide the energy which can have 2^{10} levels by 8 for the display
   display[value]++;
 
-//  tft.drawFastVLine(TFT_WIDTH - value, 0, display[value] >> yscale, ST77XX_WHITE);
   tft.drawPixel(TFT_WIDTH - value, display[value] >> yscale, ST77XX_WHITE);
 
   PORTH = B00010000;      // Switch trigger LED off

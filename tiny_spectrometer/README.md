@@ -365,3 +365,19 @@ void loop() {
   }
 }
 ```
+
+The following picture shows an example output of the spectrometer (as of now
+I have not calibrated the energy levels), it is still a work in progress, so
+to speak :-) ):
+
+![ExampleOutputImg](example_output.jpg)
+
+The rotary switch is set to the left, thus the system is in RUN mode and 
+gathers data and updates the display in real time. The BCD encoded switch
+controls the y-axis scale. Each peak displayed on the display is scaled in 
+height by dividing the absolute number of counts by two to the power of the 
+value set in with BCD swtich. In this case, the actual number of counts in 
+every energy level are divided by 2 ** 3 = 8 (which is done with a simple 
+and fast bitwise right shift in the display routine).
+
+
