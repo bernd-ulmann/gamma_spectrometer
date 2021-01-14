@@ -149,6 +149,9 @@ The switches are connected to the MEGA 2650 like this:
 |BCD 4|PD2|
 |BCD 8|PD3|
 
+Control software
+----------------
+
 The control software is extremely straight-forward as there is no need for 
 a more or less complicated peak detection since this is taken care of by the
 analog front end already:
@@ -380,4 +383,19 @@ value set in with BCD swtich. In this case, the actual number of counts in
 every energy level are divided by 2 ** 3 = 8 (which is done with a simple 
 and fast bitwise right shift in the display routine).
 
+Since the software uses the built-in analog digital converter of the MEGA
+2650, it can (basically) differentiate between 1024 energy levels. Since the
+TFT display only has 128 columns, eight energy levels are grouped together
+to control the display.
 
+USB communication
+-----------------
+The counts for each of the 1024 energy levels can be downloaded via the 
+USB port. The program can be controlled via the USB port by three single
+character commands (no newline or carriage return!), namely:
+
+c: Return the number of events countes so far as well as the maximum 
+   peak in the energy levels.
+r: Read out the 1024 energy levels. This returns 1024 lines, each containing
+   a count in decimal represenation.
+x: Reset all internal counters.
