@@ -1,8 +1,8 @@
 # Tiny Gamma Spectrometer
 This directory contains my notes and sources for building a simple gamma
 spectrometer. This was mainly developed over Christmas time 2020/2021, and I 
-had to use what was at hand, so there are certainly better ways to do things
-- something which I am fully aware of. :-)
+had to use what was at hand, so there are certainly better ways to do things,
+something which I am fully aware of. :-)
 
 ## Overview
 Some time ago I got a photomultiplier assembly together with a plastic 
