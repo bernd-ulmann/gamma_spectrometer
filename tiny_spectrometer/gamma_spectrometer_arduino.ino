@@ -100,8 +100,8 @@ void setup() {
   */
 
   sbi(ADCSRA, ADPS2);
-  cbi(ADCSRA, ADPS1);
-  sbi(ADCSRA, ADPS0);
+  sbi(ADCSRA, ADPS1);
+  cbi(ADCSRA, ADPS0);
 
   PORTH = B00010000;      // Turn the trigger LED of if it was on
   Serial.begin(115200);
@@ -125,6 +125,7 @@ void triggered() {
   value >>= 3;            // Basically we divide the energy which can have 2^{10} levels by 8 for the display
   display[value]++;
 
+//  tft.drawFastVLine(TFT_WIDTH - value, 0, display[value] >> yscale, ST77XX_WHITE);
   tft.drawPixel(TFT_WIDTH - value, display[value] >> yscale, ST77XX_WHITE);
 
   PORTH = B00010000;      // Switch trigger LED off
