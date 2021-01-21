@@ -253,8 +253,8 @@ void setup() {
   */
 
   sbi(ADCSRA, ADPS2);
-  cbi(ADCSRA, ADPS1);
-  sbi(ADCSRA, ADPS0);
+  sbi(ADCSRA, ADPS1);
+  cbi(ADCSRA, ADPS0);
 
   PORTH = B00010000;      // Turn the trigger LED of if it was on
   Serial.begin(115200);
