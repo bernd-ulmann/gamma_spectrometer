@@ -391,11 +391,11 @@ The counts for each of the 1024 energy levels can be downloaded via the
 USB port. The program can be controlled via the USB port by three single
 character commands (no newline or carriage return!), namely:
 
-*c: Return the number of events countes so far as well as the maximum 
-   peak in the energy levels.
-*r: Read out the 1024 energy levels. This returns 1024 lines, each containing
-   a count in decimal represenation.
-*x: Reset all internal counters.
+* c: Return the number of events countes so far as well as the maximum 
+     peak in the energy levels.
+* r: Read out the 1024 energy levels. This returns 1024 lines, each containing
+     a count in decimal represenation.
+* x: Reset all internal counters.
 
 It is suggested to disable reset on serial line connect by opening
 the connection under the two solder pads noted "RESET" on the MEGA 2650
