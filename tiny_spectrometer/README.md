@@ -411,7 +411,8 @@ parameters can be found in the comments in that program.
 
 # Example spectra
 Here are some examples of spectra obtained with the tiny Gamma spectrometer.
-The first example is the spectrum of an Am241 sample:
+(Please note that these are not energy calibrated and thus only qualitative
+not quantitative!) The first example is the spectrum of an Am241 sample:
 ![Am241Img](Am241_smoothed_W10.jpg)
 
 The second example was taken from a historic glow-in-the-dark switch and
