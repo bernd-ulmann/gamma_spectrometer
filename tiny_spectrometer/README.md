@@ -401,3 +401,19 @@ It is suggested to disable reset on serial line connect by opening
 the connection under the two solder pads noted "RESET" on the MEGA 2650
 PCB. Otherwise the Arduino will be reset every time a serial connection
 is established.
+
+### Perl client program
+There is a simple client program written in Perl, 
+[smooth_plot.pl](smooth_plot.pl), which either connects directly to the 
+USB port of the Arduino based controller board to read raw data from the
+spectrometer or reads data from a file. A description of the command line
+parameters can be found in the comments in that program.
+
+# Example spectra
+Here are some examples of spectra obtained with the tiny Gamma spectrometer.
+The first example is the spectrum of an Am241 sample:
+![Am241Img](Am241_smoothed_W10.jpg)
+
+The second example was taken from a historic glow-in-the-dark switch and
+corresponds very well to the spectrum of Ra226:
+![Ra226Img](ra226.jpg)
