@@ -70,22 +70,26 @@ if (defined($destination)) {
     close($handle);
 }
 
-my @smoothed;
+my (@smoothed, $counts);
 if (defined($window_size)) {
     print "Smoothing with window size $window_size.\n";
     my @window;
     push(@window, shift(@data)) for (1 .. $window_size);
+    $counts += $_ for @window;
     for my $i (0 .. @data - 1) {
         my $average;
         $average += $_ for @window;
         push(@smoothed, $average / $window_size);
         shift(@window);
+        $counts += $data[$i];
         push(@window, $data[$i]);
     }
 } else {
     @smoothed = @data;
+    $counts += $_ for @data;
     print "No smoothing applied.\n";
 }
+print "$counts events detected.\n";
 
 my $handle = File::Temp->new();
 my $tempfile = $handle->filename();
