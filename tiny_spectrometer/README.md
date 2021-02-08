@@ -420,3 +420,21 @@ Gamma spectroscopy. The first example is the spectrum of an Am241 sample:
 The second example was taken from a historic glow-in-the-dark switch and
 corresponds very well to the spectrum of Ra226:
 ![Ra226Img](ra226.jpg)
+
+# A high voltage power supply for an RFT made PMT/scintillator assembly
+A few weeks ago I managed to get hold of an RFT made PMT/scintillator 
+assembly (made in the former GDR) shown here:
+
+![RFTImg](rft.jpg)
+
+This is equipped with an NaI scintillator, a rather tiny M10FS29 
+photomultiplier, its associated voltage divider and an impedance 
+converter. Since this assembly has a very strange and proprietary connector,
+I decided to build a simple adapter card which can be inserted into the 
+tiny Gamma spectrometer. This card contains a simple high voltage supply
+for the PMT yielding up to -1250 V with about 500 mV of ripple at 1 kV (not
+too bad although not outstanding though) which is shown here:
+
+![HVImg](hv_supply.jpg)
+
+
