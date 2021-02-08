@@ -437,4 +437,33 @@ too bad although not outstanding though) which is shown here:
 
 ![HVImg](hv_supply.jpg)
 
+At the heart of the high voltage supply is a litte CCFL inverter (on the 
+bottom of the euro card). Its output is followed by a Greinacher voltage
+doubler stage consisting of two high voltage diodes and two 2.2 nF high
+voltage capacitors. This is followed by a 68k resistor and another 2.2 nF
+high voltage capacitor, reducing ripply considerably. 
 
+The output voltage is fed to the RFT PMT/scintillator assembly as well as 
+to a 10 M voltage divider which is trimmed to yield an output voltage of
+1 V per 100 V of high voltage output. This is fed to a high power operational
+amplifier OPA551 (upper right) where it is compared with a reference voltage
+signal which can be set from a 10 turn trimmer accessible through the front
+panel. The output of the amplifier drives the CCFL inverter.
+
+From a former device I had a spare DC/DC converter yielding +/-15 V and a
+similar converter yielding +5 V, so these replaced the previous linearly
+regulated power supply of the spectrometer, saving a significant amount of
+space.
+
+The completed, self contained Gamma spectrometer is shown in the picture
+below:
+
+![OverallImg](overall_setup.jpg)
+
+The module on the far right is a simple pulse shaping amplifier which was 
+necessary as the builtin impedance converter of the RFT assembly yielded 
+pulses too short for the analog front end of the device. This pulse shape 
+amplifier consists of a single (fast) operational amplifier in inverting 
+mode which is fed with the output signal from the RFT sensor via a 100 nF 
+capacitor, having a 2.2 nF capacitor in parallel with a 470 Ohm resistor in 
+its feedback path.
