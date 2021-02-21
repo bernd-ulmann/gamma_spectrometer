@@ -437,7 +437,7 @@ too bad although not outstanding though) which is shown here:
 
 ![HVImg](hv_supply.jpg)
 
-At the heart of the high voltage supply is a litte CCFL inverter (on the 
+At the heart of the high voltage supply is a little CCFL inverter (on the 
 bottom of the euro card). Its output is followed by a Greinacher voltage
 doubler stage consisting of two high voltage diodes and two 2.2 nF high
 voltage capacitors. This is followed by a 68k resistor and another 2.2 nF
@@ -450,7 +450,7 @@ amplifier OPA551 (upper right) where it is compared with a reference voltage
 signal which can be set from a 10 turn trimmer accessible through the front
 panel. The output of the amplifier drives the CCFL inverter.
 
-From a former device I had a spare DC/DC converter yielding +/-15 V and a
+From a former project I had a spare DC/DC converter yielding +/-15 V and a
 similar converter yielding +5 V, so these replaced the previous linearly
 regulated power supply of the spectrometer, saving a significant amount of
 space.
