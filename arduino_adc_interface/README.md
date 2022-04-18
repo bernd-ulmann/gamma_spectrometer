@@ -354,3 +354,22 @@ board):
 Device has been reset.
 ```
 
+After the desired measurement time, data can be read, displayed (and optionally
+smoothed for display and stored (unaltered) in a file) like this:
+```
+➜  arduino perl adcread.pl -u /dev/cu.usbmodem146301 -d spectrum.dat -w 10
+Read data...
+2048 records read.
+Saving raw data to spectrum.dat.
+Smoothing with window size 10.
+383154 events detected.
+gnuplot> 
+```
+
+The program will leave the user at the gnuplot prompt so that the graphic can
+be exported to various file formats, scales can be adapted etc.
+
+The output from the command above looks like this (the source was my 
+grandmothers old clock which contains only traces of Ra226, so the measurement
+times are quite long):
+![spectrum.pdf](spectrum.pdf)
