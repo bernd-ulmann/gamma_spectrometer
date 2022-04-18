@@ -63,7 +63,8 @@ channel), so this interface only uses eleven of the twelve data lines, and the
 ADC should be set to 2k conversion gain.
 
 # Arduino code
-The C++ code for the Arduino is quite simple and straightforward.
+The C++ code [adc_readout/adc_readout.ino](adc_readout/adc_readout.ino) for the 
+Arduino is quite simple and straightforward.
 ```
 /*
     05-APR-2022 B. Ulmann Initial implementation
