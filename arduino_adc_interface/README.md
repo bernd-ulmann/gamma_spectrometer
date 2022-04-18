@@ -372,4 +372,4 @@ be exported to various file formats, scales can be adapted etc.
 The output from the command above looks like this (the source was my 
 grandmothers old clock which contains only traces of Ra226, so the measurement
 times are quite long):
-![spectrum.pdf](spectrum.pdf)
+![spectrum.jpg](spectrum.jpg)
