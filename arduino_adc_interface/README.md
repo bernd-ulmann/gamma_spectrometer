@@ -330,3 +330,7 @@ if ($reset) {
     system(qq(gnuplot -e "set xrange [0:$last_channel]; set title '$title'; set xlabel 'Energy [keV]'; set ylabel 'counts'; plot '$tempfile' w l" -));
 }
 ```
+
+# Setup and usage
+
+![Setup](setup.jpg)
