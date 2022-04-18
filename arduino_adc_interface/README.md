@@ -183,7 +183,7 @@ Although it is possible and feasible to use this interface manually using the
 serial monitor which is part of the Arduino IDE, copying the channel counts 
 into a file and then using gnuplot or a similar tool to display the data, it
 is more convenient to use a little tool written in Perl to communicate with 
-the ADC interface.
+the ADC interface: [adcread.pl](adcread.pl)
 
 ```
 #
@@ -333,5 +333,24 @@ if ($reset) {
 ```
 
 # Setup and usage
-
+My current setup looks like this:
 ![Setup](setup.jpg)
+
+It consists (from left to right) of an ORTEC NIM crate with a high voltage 
+power supply for the photomultiplier tube, the Nuclear Data ND580 ADC, a 
+Berthold ratemeter, an ORTEC model 490B amplifier and an ORTEC model 480 
+pulser which was quite useful for debugging and calibrating the setup.
+
+The voltmeter is used to set the high voltage (the high voltage power supply
+yields a monitor voltage at 1 V/kV). In front of this, the photomultiplier
+assembly can be seen. The Arduino based ADC adapter is the little white box
+on the right.
+
+To record and display a spectrum, the adapter first has to be reset (the 
+USB device is only valid for my setup as it depends on the actual Arduino
+board):
+```
+➜  arduino perl adcread.pl -u /dev/cu.usbmodem146301 -r
+Device has been reset.
+```
+
