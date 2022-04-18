@@ -15,4 +15,4 @@ This is how a typical classic ADC for gamma spectroscopy looks like. The flat
 ribbon cable connects to the double row pin header on the upper right and 
 features a 25 pin SUB-D connector which typically connects to some memory 
 unit or computer interface.
-![Interface connector](ADC.jpg}
+![Interface connector](ADC.jpg)
