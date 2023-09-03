@@ -29,12 +29,21 @@
 
     05-APR-2022 B. Ulmann Initial implementation
     08-APR-2022 B. Ulmann Added maximum output in 'c'-command
+    03-SEP-2023 B. Ulmann Added X/Y-output for an oscilloscope
 */
 
 #define BAUD_RATE 115200
 #define READY_PIN 18
 #define INT_MODE  FALLING
-#define ADC_BITS  11        // 2k resolution
+#define ADC_BITS  11        // 2k resolution - we don't have enough RAM for 12 bits resolution :-(
+
+#define X_PIN 13            // PWM outputs for X and Y oscilloscope inputs.
+#define Y_PIN 4
+#define PIXEL_DELAY 80      // Delay after plotting a pixel to get a more stable display.
+
+/*  The X/Y display requires two RC combinations connected to pins 13 and 4 of the 
+ * MEGA 2650 board. 4k7 and 100 nF are suggested to get a relatively stable display
+ */
 
 union {
   byte raw[2];
@@ -78,33 +87,60 @@ void setup() {
 
   Serial.begin(BAUD_RATE);
 
+  pinMode(X_PIN, OUTPUT);
+  pinMode(Y_PIN, OUTPUT);
+  TCCR0B = (TCCR0B & 0b11111000) | 0x01;  // No clock divider for timer 0 to get a high PWM frequency
+
   attachInterrupt(digitalPinToInterrupt(READY_PIN), get_data, INT_MODE);
 
   Serial.print("INIT...\n");
 }
 
 void loop() {
-  if (Serial.available() > 0) {
-    switch(Serial.read()) {
-      case 'c': // Read counter
-        detachInterrupt(digitalPinToInterrupt(READY_PIN));
-        Serial.print("Events = " + String(events) + ", maximum value = " + String(maximum) + "\n");
-        attachInterrupt(digitalPinToInterrupt(READY_PIN), get_data, INT_MODE);
-        break;
-      case 'r': // Readout
-        detachInterrupt(digitalPinToInterrupt(READY_PIN));
-        Serial.print("--------\n");
-        for (uint16_t i = 0; i < (1 << ADC_BITS); Serial.print(String(counters[i++]) + "\n"));
-        Serial.print("--------\n");
-        attachInterrupt(digitalPinToInterrupt(READY_PIN), get_data, INT_MODE);
-        break;
-      case 'x': // Reset
-        detachInterrupt(digitalPinToInterrupt(READY_PIN));
-        events = maximum = 0;
-        for (uint16_t i = 0; i < (1 << ADC_BITS); counters[i++] = 0);
-        Serial.print("Reset\n");
-        attachInterrupt(digitalPinToInterrupt(READY_PIN), get_data, INT_MODE);
-        break;        
+  unsigned int x = 0, y_scale = 0;
+
+  for (;;) {
+    analogWrite(X_PIN, x);
+    analogWrite(Y_PIN, counters[x++ << 3] >> y_scale);
+
+    delayMicroseconds(PIXEL_DELAY);
+    if (x == 256) {
+      x = 0;
+      analogWrite(X_PIN, x);
+
+      delayMicroseconds(1000);  // Wait pretty long for the beam to get back to the lower left corner.
+
+      int flag = 0;             // Do we need to rescale the display?
+      for (unsigned int i = 0; i < 256; i++)
+        if ((counters[i << 3] >> y_scale) > 255)
+          flag = 1;
+
+      if (flag) y_scale++;      // Scale by another factor of 2.
+    }
+
+    if (Serial.available() > 0) {
+      switch(Serial.read()) {
+        case 'c': // Read counter
+          detachInterrupt(digitalPinToInterrupt(READY_PIN));
+          Serial.print("Events = " + String(events) + ", maximum value = " + String(maximum) + "\n");
+          attachInterrupt(digitalPinToInterrupt(READY_PIN), get_data, INT_MODE);
+          break;
+        case 'r': // Readout
+          detachInterrupt(digitalPinToInterrupt(READY_PIN));
+          Serial.print("--------\n");
+          for (uint16_t i = 0; i < (1 << ADC_BITS); Serial.print(String(counters[i++]) + "\n"));
+          Serial.print("--------\n");
+          attachInterrupt(digitalPinToInterrupt(READY_PIN), get_data, INT_MODE);
+          break;
+        case 'x': // Reset
+          detachInterrupt(digitalPinToInterrupt(READY_PIN));
+          events = maximum = 0;
+          for (uint16_t i = 0; i < (1 << ADC_BITS); counters[i++] = 0);
+          Serial.print("Reset\n");
+          attachInterrupt(digitalPinToInterrupt(READY_PIN), get_data, INT_MODE);
+          break;        
+      }
     }
   }
 }
+
