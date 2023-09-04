@@ -370,6 +370,38 @@ The program will leave the user at the gnuplot prompt so that the graphic can
 be exported to various file formats, scales can be adapted etc.
 
 The output from the command above looks like this (the source was my 
-grandmothers old clock which contains only traces of Ra226, so the measurement
+grandmother's old clock which contains only traces of Ra226, so the measurement
 times are quite long):
 ![spectrum.jpg](spectrum.jpg)
+
+The current firmware for the Arduino MEGA2650 now also supports analog X- and
+Y-outputs to drive an oscilloscope or X/Y-display. This is a really useful 
+feature as it allows one to tinker with the settings of the various parts of 
+the Gamma spectrometer and directly observe the effects without requiring a
+computer reading and displaying values.
+
+These two control voltages are derived by a simple RC-combination for each
+channel (4k7 in series with a BNC output socket and a 100 nF capacitor from the BNC socket's signal pin to ground) connected to the PWM outputs on pins 4 and
+13 of the MEGA2650. 
+
+To achieve a high output signal frequency, the PWM base frequency must be 
+increased substantially over the standard frequency of 490 Hz. This is done
+by configuring the Timer 0 to work with a lower divider value.
+
+The following picture shows a typical setup:
+![NIMsetup.jpg](NIMsetup.jpg)
+
+The oscilloscope is run in X/Y-mode (at first glance it would be much simpler
+to just generate a repeating output signal with a leading trigger signal but
+the stochastic nature of the interrupts caused by the attached ADC makes this
+impossible as it yields a very jittery display) and shows a typical RA226
+Gamma spectrum. 
+
+To fit into the surrounding NIM environment, the Arduino has been mounted in 
+an empty NIM enclosure:
+![gammaduino_internal.jpg](gammaduino_internal.jpg)
+
+The following picture shows the "Gammaduino" NIM module mounted in a NIM-chassis
+next to an ORTEC LOG/LIN Ratemeter. To the right is the central ND580 ADC and
+an ORTEC 490B amplifier connected to the photomultiplier base:
+![gammaduino_in_chassis.jpg](gammaduino_in_chassis.jpg)
