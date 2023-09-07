@@ -1,3 +1,5 @@
+# This program has been configured for an amplifier setting of a coarse gain 
+# of 4 and a fine gain of 3!
 #
 #  This simple Perl program either reads raw data from the Arduino based ADC
 # adapter which works with Nuclear Data ADCs such as the ND580 or with 
@@ -23,6 +25,7 @@
 # 2022-04-09    B. Ulmann   Initial version based on the old Perl program 
 #                           targeted at the homebrew simple Gamma spectrometer.
 # 2022-04-13    B. Ulmann   Added keV-scaling.
+# 2023-03-19    B. Ulmann   Added JPG output
 #
 
 use strict;
@@ -31,28 +34,41 @@ use File::Temp;
 use Getopt::Long qw(GetOptions);
 use Device::SerialPort;
 use Time::HiRes qw(usleep);
+use POSIX qw(strftime);
 
 my $baudrate = 115200;
-my $last_channel = 810;     # Energy of the last channel (experimentally determined).
-                            # This is for the small PMT at 1.5 kV, with the 490B
-                            # amplifier set to a gain of 5 * 4.
+my $last_channel_gamma = 2000;  # Energy of the last channel (experimentally 
+                                # determined). This is the default for my gamma
+                                # spectroscopy setup (PMT at 1.5 kV, 490B 
+                                # amplifier).
+my $channels_gamma = 1900;
+my $last_channel_alpha = 12000; # The same for my alpha spectrosopcy setup.
+my $channels_alpha = 2048;
 
 die "Usage: perl $0 [-w <window_size>] 
                        {-u <usb_port> | -f <filename>} 
                        [-d <destination_filename>]
                        [-t <title>]
+                       [-p] generate a plot
+                       [-j] do not plot but create a jpg picture
+                       [-a] alpha spectrum (different parameters)
        perl $0 -r (to reset the device)
        perl $0 -s (to get statistics)\n" 
     unless @ARGV;
 
-my ($usb_port, $window_size, $filename, $destination, $statistics, $reset, $title);
+my ($usb_port, $window_size, $filename, $destination, $statistics, $reset, 
+    $title, $jpg, $plot, $yrange, $alpha);
 $title = '';
 GetOptions('u=s' => \$usb_port, 
            'w=s' => \$window_size, 
            'f=s' => \$filename, 
            'd=s' => \$destination, 
-           's' =>   \$statistics, 
-           'r' =>   \$reset,
+           's'   => \$statistics, 
+           'r'   => \$reset,
+           'j'   => \$jpg,
+           'p'   => \$plot,
+           'a'   => \$alpha,
+           'y=s' => \$yrange,
            't=s' => \$title);
 
 die "Either -f or -u must be specified!\n" if !defined($filename) and !defined($usb_port);
@@ -66,6 +82,10 @@ if (defined($usb_port)) {
     $port->parity('none');
     $port->stopbits(1);
 }
+
+my $date = strftime("%Y%m%d-%H%M%S", localtime);
+$title |= "$date";
+$title = $filename if defined($filename);
 
 if ($reset) {
     die "Reset requires a USB port to be specified!\n" unless defined($port);
@@ -85,6 +105,7 @@ if ($reset) {
     if (defined($filename)) {
         open (my $handle, '<', $filename) or die "Could not open $filename: $!\n";
         while (my $record = <$handle>) {
+            chomp($record);
             push(@data, $record) if $record =~ /^\d+$/;
         }
         close($handle);
@@ -105,40 +126,61 @@ if ($reset) {
     }
     print scalar(@data), " records read.\n";
 
-    if (defined($destination)) {
+    my $handle;
+    unless (defined($filename)) {
+        $destination //= "$date.dat";
         print "Saving raw data to $destination.\n";
-        open(my $handle, '>', $destination) or die "Could not open $destination: $!\n";
+        open($handle, '>', $destination) or die "Could not open $destination: $!\n";
         print $handle "$_\n" for @data;
         close($handle);
     }
 
-    my (@smoothed, $counts);
-    if (defined($window_size)) {
-        print "Smoothing with window size $window_size.\n";
-        my @window;
-        push(@window, shift(@data)) for (1 .. $window_size);
-        $counts += $_ for @window;
-        for my $i (0 .. @data - 1) {
-            my $average;
-            $average += $_ for @window;
-            push(@smoothed, $average / $window_size);
-            shift(@window);
-            $counts += $data[$i];
-            push(@window, $data[$i]);
+    if ($plot or $jpg) {
+        my ($counts, @smoothed);
+        if (defined($window_size)) {
+         print "Smoothing with window size $window_size.\n";
+            my @window;
+            push(@window, shift(@data)) for (1 .. $window_size);
+            $counts += $_ for @window;
+            for my $i (0 .. @data - 1) {
+                my $average;
+                $average += $_ for @window;
+                push(@smoothed, $average / $window_size);
+                shift(@window);
+                $counts += $data[$i];
+                push(@window, $data[$i]);
+            }
+        } else {
+            @smoothed = @data;
+            $counts += $_ for @data;
+            print "No smoothing applied.\n";
         }
-    } else {
-        @smoothed = @data;
-        $counts += $_ for @data;
-        print "No smoothing applied.\n";
+        print "$counts events detected.\n";
+
+        my $last_channel = $last_channel_gamma;
+        $last_channel = $last_channel_alpha if $alpha;
+
+        my $channels = $channels_gamma;
+        $channels = $channels_alpha if $alpha;
+
+        $handle = File::Temp->new();
+        my $tempfile = $handle->filename();
+        my $x = 0;
+        my $increment = $last_channel / $channels;
+        print $handle $x += $increment, " $_\n" for @smoothed;
+        close($handle);
+
+        # If the gnuplot command ends with '-' gnuplot will not be terminated 
+        # after generating the plot.
+        my $command;
+        my $y = '';
+        $y = "set yrange [0:$yrange]; " if ($yrange);
+
+        if ($jpg) {
+            $command = qq(gnuplot -e "set terminal jpeg; set output '$date.jpg'; $y set xrange [0:$last_channel]; set title '$title'; set xlabel 'Energy [keV]'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
+        } else {
+            $command = qq(gnuplot -e "$y set xrange [0:$last_channel]; set title '$title'; set xlabel 'Energy [keV]'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
+        }
+        system($command);
     }
-    print "$counts events detected.\n";
-
-    my $handle = File::Temp->new();
-    my $tempfile = $handle->filename();
-    my $x = 0;
-    my $increment = $last_channel / 2048;
-    print $handle $x += $increment, " $_\n" for @smoothed;
-    close($handle);
-
-    system(qq(gnuplot -e "set xrange [0:$last_channel]; set title '$title'; set xlabel 'Energy [keV]'; set ylabel 'counts'; plot '$tempfile' w l" -));
 }
