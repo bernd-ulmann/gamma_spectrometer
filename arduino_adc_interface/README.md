@@ -479,6 +479,8 @@ grandmother's old clock which contains only traces of Ra226, so the measurement
 times are quite long):
 ![spectrum.jpg](spectrum.jpg)
 
+# XY-output (September 2023)
+
 The current firmware for the Arduino MEGA2650 now also supports analog X- and
 Y-outputs to drive an oscilloscope or X/Y-display. This is a really useful 
 feature as it allows one to tinker with the settings of the various parts of 
