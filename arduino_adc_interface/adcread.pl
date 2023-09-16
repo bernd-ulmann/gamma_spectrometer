@@ -37,27 +37,23 @@ use Time::HiRes qw(usleep);
 use POSIX qw(strftime);
 
 my $baudrate = 115200;
-my $last_channel_gamma = 2000;  # Energy of the last channel (experimentally 
-                                # determined). This is the default for my gamma
-                                # spectroscopy setup (PMT at 1.5 kV, 490B 
-                                # amplifier).
-my $channels_gamma = 1900;
-my $last_channel_alpha = 12000; # The same for my alpha spectrosopcy setup.
-my $channels_alpha = 2048;
+my $channels = 2048;
 
 die "Usage: perl $0 [-w <window_size>] 
                        {-u <usb_port> | -f <filename>} 
+                       [-e <energy of last channel]
                        [-d <destination_filename>]
                        [-t <title>]
                        [-p] generate a plot
                        [-j] do not plot but create a jpg picture
                        [-a] alpha spectrum (different parameters)
+                       [-y <value>] set y-range
        perl $0 -r (to reset the device)
        perl $0 -s (to get statistics)\n" 
     unless @ARGV;
 
 my ($usb_port, $window_size, $filename, $destination, $statistics, $reset, 
-    $title, $jpg, $plot, $yrange, $alpha);
+    $title, $jpg, $plot, $yrange, $alpha, $energy);
 $title = '';
 GetOptions('u=s' => \$usb_port, 
            'w=s' => \$window_size, 
@@ -68,6 +64,7 @@ GetOptions('u=s' => \$usb_port,
            'j'   => \$jpg,
            'p'   => \$plot,
            'a'   => \$alpha,
+           'e=s' => \$energy,
            'y=s' => \$yrange,
            't=s' => \$title);
 
@@ -138,7 +135,7 @@ if ($reset) {
     if ($plot or $jpg) {
         my ($counts, @smoothed);
         if (defined($window_size)) {
-         print "Smoothing with window size $window_size.\n";
+            print "Smoothing with window size $window_size.\n";
             my @window;
             push(@window, shift(@data)) for (1 .. $window_size);
             $counts += $_ for @window;
@@ -157,16 +154,20 @@ if ($reset) {
         }
         print "$counts events detected.\n";
 
-        my $last_channel = $last_channel_gamma;
-        $last_channel = $last_channel_alpha if $alpha;
-
-        my $channels = $channels_gamma;
-        $channels = $channels_alpha if $alpha;
+        my ($increment, $x_label, $x_range);
+        if (!defined($energy)) {
+            $x_label = 'Channel #';
+            $increment = 1;
+            $x_range = $channels;
+        } else {
+            $increment = $energy / $channels;
+            $x_label = 'Energy [keV]';
+            $x_range = $energy;
+        }
 
         $handle = File::Temp->new();
         my $tempfile = $handle->filename();
         my $x = 0;
-        my $increment = $last_channel / $channels;
         print $handle $x += $increment, " $_\n" for @smoothed;
         close($handle);
 
@@ -177,9 +178,9 @@ if ($reset) {
         $y = "set yrange [0:$yrange]; " if ($yrange);
 
         if ($jpg) {
-            $command = qq(gnuplot -e "set terminal jpeg; set output '$date.jpg'; $y set xrange [0:$last_channel]; set title '$title'; set xlabel 'Energy [keV]'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
+            $command = qq(gnuplot -e "set terminal jpeg; set output '$date.jpg'; $y set xrange [0:$x_range]; set title '$title'; set xlabel '$x_label'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
         } else {
-            $command = qq(gnuplot -e "$y set xrange [0:$last_channel]; set title '$title'; set xlabel 'Energy [keV]'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
+            $command = qq(gnuplot -e "$y set xrange [0:$x_range]; set title '$title'; set xlabel '$x_label'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
         }
         system($command);
     }
