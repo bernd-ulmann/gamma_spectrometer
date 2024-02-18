@@ -134,7 +134,7 @@ void loop() {
           break;
         case 'x': // Reset
           detachInterrupt(digitalPinToInterrupt(READY_PIN));
-          events = maximum = 0;
+          events = maximum = y_scale = 0;
           for (uint16_t i = 0; i < (1 << ADC_BITS); counters[i++] = 0);
           Serial.print("Reset\n");
           attachInterrupt(digitalPinToInterrupt(READY_PIN), get_data, INT_MODE);
