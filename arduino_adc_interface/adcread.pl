@@ -1,31 +1,20 @@
-# This program has been configured for an amplifier setting of a coarse gain 
-# of 4 and a fine gain of 3!
 #
 #  This simple Perl program either reads raw data from the Arduino based ADC
 # adapter which works with Nuclear Data ADCs such as the ND580 or with 
 # similar Canberra devices like the Canberra 1510.
 #
-#  This program can perform several actions:
-#
-#   -r                              Reset the ACD adapter
-#   -s                              Get statistics (events/maximum count)
-#   -u <usb port> | -f <file name>  Read data from the device (USB) or a file
-#       [-w <window size>]          Perform simple smoothing with a sliding window
-#       [-d <file name>]            Save data to a file
-#       [-t <title>]                Optional title for the plot
+#  This program can perform a number of actions as described in the help 
+# message below.
 #
 #  Data is displayed using gnuplot. The plot is not normalized with respect to
-# its x- and y-axes, so there some other means of energy calibration must be 
-# applied!
-#
-#  The program finished on the gnuplot prompt so the graph can be interactively
-# rescaled, exported to various file formats etc. using the standard gnuplot
-# capabilities.
+# its x- and y-axes, so that energy calibration must be done using the -e 
+# parameter. 
 #
 # 2022-04-09    B. Ulmann   Initial version based on the old Perl program 
 #                           targeted at the homebrew simple Gamma spectrometer.
 # 2022-04-13    B. Ulmann   Added keV-scaling.
 # 2023-03-19    B. Ulmann   Added JPG output
+# 2026-07-25    B. Ulmann   Added denser xtics and log scale
 #
 
 use strict;
@@ -39,21 +28,23 @@ use POSIX qw(strftime);
 my $baudrate = 115200;
 my $channels = 2048;
 
-die "Usage: perl $0 [-w <window_size>] 
-                       {-u <usb_port> | -f <filename>} 
-                       [-e <energy of last channel]
-                       [-d <destination_filename>]
-                       [-t <title>]
-                       [-p] generate a plot
-                       [-j] do not plot but create a jpg picture
-                       [-a] alpha spectrum (different parameters)
-                       [-y <value>] set y-range
+die "Usage: perl $0 {-u <usb_port> | -f <filename>} 
+                    [-w <window_size>] 
+                    [-f <filename>] Reads data from a file
+                    [-e <energy of last channel]
+                    [-d <destination_filename>] Timestamp by default
+                    [-t <title>]
+                    [-l] set y axis to log scale
+                    [-p] generate a plot
+                    [-j] do not plot but create a jpg picture
+                    [-a] alpha spectrum (different parameters)
+                    [-y <value>] set y-range
        perl $0 -r (to reset the device)
        perl $0 -s (to get statistics)\n" 
     unless @ARGV;
 
 my ($usb_port, $window_size, $filename, $destination, $statistics, $reset, 
-    $title, $jpg, $plot, $yrange, $alpha, $energy);
+    $title, $jpg, $plot, $yrange, $alpha, $logscale, $energy);
 $title = '';
 GetOptions('u=s' => \$usb_port, 
            'w=s' => \$window_size, 
@@ -64,6 +55,7 @@ GetOptions('u=s' => \$usb_port,
            'j'   => \$jpg,
            'p'   => \$plot,
            'a'   => \$alpha,
+           'l'   => \$logscale,
            'e=s' => \$energy,
            'y=s' => \$yrange,
            't=s' => \$title);
@@ -171,16 +163,17 @@ if ($reset) {
         print $handle $x += $increment, " $_\n" for @smoothed;
         close($handle);
 
+        my $command;
+        my $y = $yrange   ? "set yrange [0:$yrange]; " : '';
+        my $l = $logscale ? 'set logscale y 10; '      : '';
+        
         # If the gnuplot command ends with '-' gnuplot will not be terminated 
         # after generating the plot.
-        my $command;
-        my $y = '';
-        $y = "set yrange [0:$yrange]; " if ($yrange);
 
         if ($jpg) {
-            $command = qq(gnuplot -e "set terminal jpeg; set output '$date.jpg'; $y set xrange [0:$x_range]; set title '$title'; set xlabel '$x_label'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
+            $command = qq(gnuplot -e "set terminal jpeg; set output '$date.jpg'; $y set xrange [0:$x_range]; set title '$title'; set xlabel '$x_label'; set ylabel 'Counts'; set xtics 0, 100; set xtics rotate by 90; $l plot '$tempfile' notitle w l");
         } else {
-            $command = qq(gnuplot -e "$y set xrange [0:$x_range]; set title '$title'; set xlabel '$x_label'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
+            $command = qq(gnuplot -e "$y set xrange [0:$x_range]; set title '$title'; set xlabel '$x_label'; set ylabel 'Counts'; set xtics 0, 100; set xtics rotate by 90; $l plot '$tempfile' notitle w l");
         }
         system($command);
     }
