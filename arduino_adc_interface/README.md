@@ -98,6 +98,9 @@ Arduino is quite simple and straightforward.
     05-APR-2022 B. Ulmann Initial implementation
     08-APR-2022 B. Ulmann Added maximum output in 'c'-command
     03-SEP-2023 B. Ulmann Added X/Y-output for an oscilloscope
+    29-SEP-2024 B. Ulmann Added #define to reverse x-deflection voltage.
+                          This became necessary since the "new" Telequipment
+                          oscilloscope has a weird EXT-X input.
 */
 
 #define BAUD_RATE 115200
@@ -108,6 +111,7 @@ Arduino is quite simple and straightforward.
 #define X_PIN 13            // PWM outputs for X and Y oscilloscope inputs.
 #define Y_PIN 4
 #define PIXEL_DELAY 80      // Delay after plotting a pixel to get a more stable display.
+#define REVERSE_X TRUE
 
 /*  The X/Y display requires two RC combinations connected to pins 13 and 4 of the 
  * MEGA 2650 board. 4k7 and 100 nF are suggested to get a relatively stable display
@@ -168,7 +172,11 @@ void loop() {
   unsigned int x = 0, y_scale = 0;
 
   for (;;) {
+#ifdef REVERSE_X
+    analogWrite(X_PIN, 255 - x);
+#else
     analogWrite(X_PIN, x);
+#endif
     analogWrite(Y_PIN, counters[x++ << 3] >> y_scale);
 
     delayMicroseconds(PIXEL_DELAY);
@@ -202,7 +210,7 @@ void loop() {
           break;
         case 'x': // Reset
           detachInterrupt(digitalPinToInterrupt(READY_PIN));
-          events = maximum = 0;
+          events = maximum = y_scale = 0;
           for (uint16_t i = 0; i < (1 << ADC_BITS); counters[i++] = 0);
           Serial.print("Reset\n");
           attachInterrupt(digitalPinToInterrupt(READY_PIN), get_data, INT_MODE);
