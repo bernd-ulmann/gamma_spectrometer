@@ -257,34 +257,23 @@ is more convenient to use a little tool written in Perl to communicate with
 the ADC interface: [adcread.pl](adcread.pl)
 
 ```
-# This program has been configured for an amplifier setting of a coarse gain 
-# of 4 and a fine gain of 3!
 #
 #  This simple Perl program either reads raw data from the Arduino based ADC
 # adapter which works with Nuclear Data ADCs such as the ND580 or with 
 # similar Canberra devices like the Canberra 1510.
 #
-#  This program can perform several actions:
-#
-#   -r                              Reset the ACD adapter
-#   -s                              Get statistics (events/maximum count)
-#   -u <usb port> | -f <file name>  Read data from the device (USB) or a file
-#       [-w <window size>]          Perform simple smoothing with a sliding window
-#       [-d <file name>]            Save data to a file
-#       [-t <title>]                Optional title for the plot
+#  This program can perform a number of actions as described in the help 
+# message below.
 #
 #  Data is displayed using gnuplot. The plot is not normalized with respect to
-# its x- and y-axes, so there some other means of energy calibration must be 
-# applied!
-#
-#  The program finished on the gnuplot prompt so the graph can be interactively
-# rescaled, exported to various file formats etc. using the standard gnuplot
-# capabilities.
+# its x- and y-axes, so that energy calibration must be done using the -e 
+# parameter. 
 #
 # 2022-04-09    B. Ulmann   Initial version based on the old Perl program 
 #                           targeted at the homebrew simple Gamma spectrometer.
 # 2022-04-13    B. Ulmann   Added keV-scaling.
 # 2023-03-19    B. Ulmann   Added JPG output
+# 2026-07-25    B. Ulmann   Added denser xtics and log scale
 #
 
 use strict;
@@ -296,27 +285,25 @@ use Time::HiRes qw(usleep);
 use POSIX qw(strftime);
 
 my $baudrate = 115200;
-my $last_channel_gamma = 2000;  # Energy of the last channel (experimentally 
-                                # determined). This is the default for my gamma
-                                # spectroscopy setup (PMT at 1.5 kV, 490B 
-                                # amplifier).
-my $channels_gamma = 1900;
-my $last_channel_alpha = 12000; # The same for my alpha spectrosopcy setup.
-my $channels_alpha = 2048;
+my $channels = 2048;
 
-die "Usage: perl $0 [-w <window_size>] 
-                       {-u <usb_port> | -f <filename>} 
-                       [-d <destination_filename>]
-                       [-t <title>]
-                       [-p] generate a plot
-                       [-j] do not plot but create a jpg picture
-                       [-a] alpha spectrum (different parameters)
+die "Usage: perl $0 {-u <usb_port> | -f <filename>} 
+                    [-w <window_size>] 
+                    [-f <filename>] Reads data from a file
+                    [-e <energy of last channel]
+                    [-d <destination_filename>] Timestamp by default
+                    [-t <title>]
+                    [-l] set y axis to log scale
+                    [-p] generate a plot
+                    [-j] do not plot but create a jpg picture
+                    [-a] alpha spectrum (different parameters)
+                    [-y <value>] set y-range
        perl $0 -r (to reset the device)
        perl $0 -s (to get statistics)\n" 
     unless @ARGV;
 
 my ($usb_port, $window_size, $filename, $destination, $statistics, $reset, 
-    $title, $jpg, $plot, $yrange, $alpha);
+    $title, $jpg, $plot, $yrange, $alpha, $logscale, $energy);
 $title = '';
 GetOptions('u=s' => \$usb_port, 
            'w=s' => \$window_size, 
@@ -327,6 +314,8 @@ GetOptions('u=s' => \$usb_port,
            'j'   => \$jpg,
            'p'   => \$plot,
            'a'   => \$alpha,
+           'l'   => \$logscale,
+           'e=s' => \$energy,
            'y=s' => \$yrange,
            't=s' => \$title);
 
@@ -397,7 +386,7 @@ if ($reset) {
     if ($plot or $jpg) {
         my ($counts, @smoothed);
         if (defined($window_size)) {
-         print "Smoothing with window size $window_size.\n";
+            print "Smoothing with window size $window_size.\n";
             my @window;
             push(@window, shift(@data)) for (1 .. $window_size);
             $counts += $_ for @window;
@@ -416,29 +405,34 @@ if ($reset) {
         }
         print "$counts events detected.\n";
 
-        my $last_channel = $last_channel_gamma;
-        $last_channel = $last_channel_alpha if $alpha;
-
-        my $channels = $channels_gamma;
-        $channels = $channels_alpha if $alpha;
+        my ($increment, $x_label, $x_range);
+        if (!defined($energy)) {
+            $x_label = 'Channel #';
+            $increment = 1;
+            $x_range = $channels;
+        } else {
+            $increment = $energy / $channels;
+            $x_label = 'Energy [keV]';
+            $x_range = $energy;
+        }
 
         $handle = File::Temp->new();
         my $tempfile = $handle->filename();
         my $x = 0;
-        my $increment = $last_channel / $channels;
         print $handle $x += $increment, " $_\n" for @smoothed;
         close($handle);
 
+        my $command;
+        my $y = $yrange   ? "set yrange [0:$yrange]; " : '';
+        my $l = $logscale ? 'set logscale y 10; '      : '';
+        
         # If the gnuplot command ends with '-' gnuplot will not be terminated 
         # after generating the plot.
-        my $command;
-        my $y = '';
-        $y = "set yrange [0:$yrange]; " if ($yrange);
 
         if ($jpg) {
-            $command = qq(gnuplot -e "set terminal jpeg; set output '$date.jpg'; $y set xrange [0:$last_channel]; set title '$title'; set xlabel 'Energy [keV]'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
+            $command = qq(gnuplot -e "set terminal jpeg; set output '$date.jpg'; $y set xrange [0:$x_range]; set title '$title'; set xlabel '$x_label'; set ylabel 'Counts'; set xtics 0, 100; set xtics rotate by 90; $l plot '$tempfile' notitle w l");
         } else {
-            $command = qq(gnuplot -e "$y set xrange [0:$last_channel]; set title '$title'; set xlabel 'Energy [keV]'; set ylabel 'Counts'; plot '$tempfile' notitle w l");
+            $command = qq(gnuplot -e "$y set xrange [0:$x_range]; set title '$title'; set xlabel '$x_label'; set ylabel 'Counts'; set xtics 0, 100; set xtics rotate by 90; $l plot '$tempfile' notitle w l");
         }
         system($command);
     }
@@ -446,10 +440,10 @@ if ($reset) {
 ```
 
 # Setup and usage
-My current setup looks like this:
+This was my first setup:
 ![Setup](setup.jpg)
 
-It consists (from left to right) of an ORTEC NIM crate with a high voltage 
+It consisted (from left to right) of an ORTEC NIM crate with a high voltage 
 power supply for the photomultiplier tube, the Nuclear Data ND580 ADC, a 
 Berthold ratemeter, an ORTEC model 490B amplifier and an ORTEC model 480 
 pulser which was quite useful for debugging and calibrating the setup.
@@ -520,3 +514,27 @@ The following picture shows the "Gammaduino" NIM module mounted in a NIM-chassis
 next to an ORTEC LOG/LIN Ratemeter. To the right is the central ND580 ADC and
 an ORTEC 490B amplifier connected to the photomultiplier base:
 ![gammaduino_in_chassis.jpg](gammaduino_in_chassis.jpg)
+
+# New setup (July 2026)
+
+Over the last few years my setup grew more and more (as hobby projects tend 
+to do). The current system looks like this:
+![setup2026.jpg](setup2026.jpg)
+
+All of the amplifiers, high (and not so high) voltage supplies, ADC, homebrew
+modules, etc., are housed in two NIM crates mounted in the rack on the left. 
+In between is a classic Telequipment oscilloscope which is typically used in 
+X/Y mode to display spectra. The bluish/gray device near the bottom is a pulse
+generator to test the overall amplifier/ADC chain.
+
+On the front right is a Frieseke & H&ouml;pfner photomultiplier with attached
+bore-hole scintillator. Behind it is my Alpha spectroscopy chamber which can
+be evacuated. On top of this is a Tennelec pre-amplifier which is directly
+connected to the detector in the vacuum chamber. In the back is a classic 
+manual sample changer with an attached PMT with scintillator. 
+
+The object of interest is a small mineral sample I got from my father in law 
+who is an avid mineral collector. This is a tiny piece auf Autunit found in 
+Bavaria which shows a beautiful spectrum (shown as a log graph):
+
+![autunit.jpg](autunit.jpg)
